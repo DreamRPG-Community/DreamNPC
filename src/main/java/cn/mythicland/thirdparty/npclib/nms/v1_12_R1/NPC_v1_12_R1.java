@@ -51,7 +51,6 @@ public class NPC_v1_12_R1 extends NPCBase {
         return holo;
     }
 
-
     @Override
     public void createPackets() {
         PacketPlayOutPlayerInfoWrapper packetPlayOutPlayerInfoWrapper = new PacketPlayOutPlayerInfoWrapper();

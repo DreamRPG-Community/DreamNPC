@@ -1,22 +1,17 @@
-name: CustomNPC
+name: DreamNPC
 version: ${version}
-main: cn.mythicland.customnpc.CustomNPCPlugin
+main: cn.mythicland.dreamnpc.DreamNPCPlugin
 author: ShanguanLinG
 load: POSTWORLD
-depend: [ Lib ]
-softdepend: [ Shopkeepers ]
-description: Annotation-driven packet NPCs with optional Shopkeepers integration.
-
+depend:
+- DreamLib
+description: Annotation-driven packet NPCs with command-bound interactions.
 commands:
-  customnpc:
-    description: Manage CustomNPC packet NPCs.
+  dreamnpc:
+    description: Manage DreamNPC packet NPCs.
     aliases:
-      - cnpc
-
+    - dnpc
 permissions:
-  customnpc.admin:
-    description: Manage CustomNPC instances.
-    default: op
-  customnpc.shopkeeper.create:
-    description: Create and edit Shopkeepers bindings for CustomNPC instances.
+  dreamnpc.admin:
+    description: Manage DreamNPC instances.
     default: op

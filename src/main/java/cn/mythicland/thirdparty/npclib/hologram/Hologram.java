@@ -578,7 +578,6 @@ public class Hologram {
             String oldLine = this.text.get(i);
             String newLine = text.get(i);
 
-
             if (version.isAboveOrEqual(MinecraftVersion.V1_19_R1)) {
                 customNameMethod.invoke(entityArmorStand, ((Object[]) chatComponentFromString.invoke(null, newLine))[0]);
             } else {

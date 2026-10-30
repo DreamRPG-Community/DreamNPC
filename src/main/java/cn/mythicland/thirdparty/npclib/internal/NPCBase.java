@@ -29,7 +29,7 @@ import java.util.*;
 @SuppressWarnings("this-escape")
 public abstract class NPCBase implements NPC, NPCPacketHandler {
 
-    protected final int entityId = Integer.MAX_VALUE - NPCManager.getAllNPCs().size();
+    protected final int entityId = NPCManager.allocateEntityId();
     protected final Set<UUID> hasTeamRegistered = new HashSet<>();
     protected final Set<NPCState> activeStates = EnumSet.noneOf(NPCState.class);
     protected final MinecraftVersion version;

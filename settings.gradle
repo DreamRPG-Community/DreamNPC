@@ -18,10 +18,10 @@ dependencyResolutionManagement {
     }
 }
 
-includeBuild("../Lib") {
+includeBuild("../DreamLib") {
     dependencySubstitution {
-        substitute module("self-written:Lib") using project(":")
+        substitute module("self-written:DreamLib") using project(":")
     }
 }
 
-rootProject.name = "CustomNPC"
+rootProject.name = "DreamNPC"

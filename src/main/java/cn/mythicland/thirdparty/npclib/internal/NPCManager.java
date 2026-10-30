@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Jitse Boonstra
@@ -16,6 +17,7 @@ import java.util.Set;
 public final class NPCManager {
 
     private static final Set<NPCBase> npcs = new HashSet<>();
+    private static final AtomicInteger nextEntityId = new AtomicInteger(Integer.MAX_VALUE);
 
     private NPCManager() {
         throw new SecurityException("You cannot initialize this class.");
@@ -23,6 +25,14 @@ public final class NPCManager {
 
     public static Set<NPCBase> getAllNPCs() {
         return npcs;
+    }
+
+    static int allocateEntityId() {
+        int id = nextEntityId.getAndUpdate(value -> value > 0 ? value - 1 : 0);
+        if (id <= 0) {
+            throw new IllegalStateException("NPC entity ID space exhausted");
+        }
+        return id;
     }
 
     public static Set<NPCBase> getShownToPlayer(Player player) {
