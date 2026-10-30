@@ -672,7 +672,8 @@ public final class DreamNPCService implements DreamNPCApi {
             return;
         }
         NpcRecord record = records.get(id);
-        if (record != null && record.skin() != null && record.skin().value() != null && record.skin().playerName().equalsIgnoreCase(normalized)) {
+        if (record != null && record.skin() != null && record.skin().value() != null &&
+                record.skin().playerName().equalsIgnoreCase(normalized)) {
             applySkin(id, record.skin(), player);
             return;
         }

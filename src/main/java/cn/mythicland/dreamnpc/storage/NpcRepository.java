@@ -75,7 +75,8 @@ public final class NpcRepository {
     private static SkinData decodeSkin(ConfigurationSection section) {
         if (section == null) return null;
         String player = section.getString("player");
-        if (player == null || player.isBlank()) throw new IllegalArgumentException("NPC skin.player requires a premium player name");
+        if (player == null || player.isBlank())
+            throw new IllegalArgumentException("NPC skin.player requires a premium player name");
         return new SkinData(player, null, null);
     }
 

@@ -84,7 +84,8 @@ public final class MojangSkinFetcher {
         Matcher uuidMatcher = UUID_PATTERN.matcher(uuidJson);
         if (!uuidMatcher.find()) throw new IllegalStateException("Mojang returned no player for " + playerName);
         String uuid = uuidMatcher.group(1);
-        String profileJson = request("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
+        String profileJson =
+                request("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false");
         Matcher valueMatcher = VALUE_PATTERN.matcher(profileJson);
         Matcher signatureMatcher = SIGNATURE_PATTERN.matcher(profileJson);
         if (!valueMatcher.find() || !signatureMatcher.find()) {

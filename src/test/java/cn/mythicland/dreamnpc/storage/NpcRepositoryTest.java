@@ -60,18 +60,18 @@ class NpcRepositoryTest {
         Files.writeString(
                 file,
                 """
-                npcs:
-                  %s:
-                    world: world
-                    x: 11.5
-                    y: 7.0
-                    z: -23.5
-                    yaw: -90.0
-                    pitch: 0.0
-                    name:
-                      - '123'
-                      - '234'
-                """.formatted(id)
+                        npcs:
+                          %s:
+                            world: world
+                            x: 11.5
+                            y: 7.0
+                            z: -23.5
+                            yaw: -90.0
+                            pitch: 0.0
+                            name:
+                              - '123'
+                              - '234'
+                        """.formatted(id)
         );
 
         NpcRecord loaded = new NpcRepository(file).load().join().get(id);
@@ -105,19 +105,19 @@ class NpcRepositoryTest {
         Files.writeString(
                 file,
                 """
-                npcs:
-                  %s:
-                    world: world
-                    x: 0.5
-                    y: 64.0
-                    z: 0.5
-                    name:
-                      - 'Top'
-                      - 'Bottom'
-                    name-line-spacing:
-                      - 0.0
-                      - 0.35
-                """.formatted(id)
+                        npcs:
+                          %s:
+                            world: world
+                            x: 0.5
+                            y: 64.0
+                            z: 0.5
+                            name:
+                              - 'Top'
+                              - 'Bottom'
+                            name-line-spacing:
+                              - 0.0
+                              - 0.35
+                        """.formatted(id)
         );
 
         NpcRecord loaded = new NpcRepository(file).load().join().get(id);

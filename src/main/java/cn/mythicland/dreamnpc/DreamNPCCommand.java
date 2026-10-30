@@ -64,7 +64,8 @@ public final class DreamNPCCommand {
         } catch (NumberFormatException exception) {
             throw context.invalidUsage();
         }
-        service.rename(player(context), line, String.join(" ", context.arguments().subList(1, context.arguments().size())));
+        service.rename(player(context), line,
+                String.join(" ", context.arguments().subList(1, context.arguments().size())));
     }
 
     @CommandHandler(
