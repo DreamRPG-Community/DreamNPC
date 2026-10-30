@@ -2,9 +2,8 @@
 
 ## NPCLib
 
-CustomNPC embeds a privately relocated subset of [NPCLib](https://github.com/JitseB/NPCLib) under
-`cn.mythicland.thirdparty.npclib`, including its API, TinyProtocol helpers, bStats metrics helper,
-and the Paper 1.12.2 `v1_12_R1` implementation.
+DreamNPC embeds [MythicNPCLib](https://github.com/MythicLand-Network/MythicNPCLib), derived from
+[NPCLib](https://github.com/JitseB/NPCLib), including its Paper 1.12.2 `v1_12_R1` implementation.
 
 NPCLib is licensed under the MIT License:
 

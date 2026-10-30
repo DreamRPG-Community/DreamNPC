@@ -2,7 +2,7 @@ package cn.mythicland.dreamnpc;
 
 import cn.mythicland.dreamlib.bootstrap.PluginTaskScope;
 import cn.mythicland.dreamlib.bootstrap.annotation.ListenerComponent;
-import cn.mythicland.thirdparty.npclib.api.events.NPCInteractEvent;
+import cn.mythicland.npclib.api.events.NPCInteractEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

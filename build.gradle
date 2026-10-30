@@ -41,11 +41,22 @@ tasks.withType(Jar).configureEach {
 
 tasks.named("jar") {
     from("THIRD-PARTY-NOTICES.md")
+    from({ configurations.npcEmbedded.collect { zipTree(it) } }) {
+        include "cn/mythicland/npclib/**", "cn/mythicland/framework/bukkit/reflect/**"
+    }
 }
 
 def paperApiVersion = "1.12.2-R0.1-20190714.184133-413"
 
+configurations {
+    npcEmbedded { transitive = false }
+    compileClasspath.extendsFrom(npcEmbedded)
+    testRuntimeClasspath.extendsFrom(npcEmbedded)
+}
+
 dependencies {
+    npcEmbedded("cn.mythicland:mythic-npclib:1.0.0")
+    npcEmbedded("cn.mythicland:mythic-framework-bukkit:1.0.0")
     compileOnly("com.destroystokyo.paper:paper-api:${paperApiVersion}")
     compileOnly("self-written:DreamLib:${project.version}")
     compileOnly(files("../../../cache/patched_1.12.2.jar"))

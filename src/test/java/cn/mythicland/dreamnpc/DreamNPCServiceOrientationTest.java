@@ -108,6 +108,24 @@ class DreamNPCServiceOrientationTest {
         assertTrue(Double.isInfinite(hitDistance), "A ray beside the NPC should not select it");
     }
 
+    @Test
+    void selectionRayHandlesParallelAxesAndBothDirections() {
+        World world = testWorld();
+        Location npc = new Location(world, 0.0D, 0.0D, 0.0D);
+        assertEquals(1.5D, DreamNPCService.selectionDistance(
+                new Location(world, -2.0D, 1.0D, 0.0D), new Vector(1, 0, 0), npc, 5.0D, 0.5D
+        ));
+        assertEquals(1.5D, DreamNPCService.selectionDistance(
+                new Location(world, 2.0D, 1.0D, 0.0D), new Vector(-1, 0, 0), npc, 5.0D, 0.5D
+        ));
+        assertTrue(Double.isInfinite(DreamNPCService.selectionDistance(
+                new Location(world, -2.0D, 1.0D, 0.6D), new Vector(1, 0, 0), npc, 5.0D, 0.5D
+        )));
+        assertTrue(Double.isInfinite(DreamNPCService.selectionDistance(
+                new Location(world, -2.0D, 1.0D, 0.0D), new Vector(1, 0, 0), npc, 1.0D, 0.5D
+        )));
+    }
+
     private static World testWorld() {
         return (World) Proxy.newProxyInstance(
                 World.class.getClassLoader(),

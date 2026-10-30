@@ -1,7 +1,7 @@
 package cn.mythicland.dreamnpc.runtime;
 
 import cn.mythicland.dreamlib.text.FloatingTextHandle;
-import cn.mythicland.thirdparty.npclib.api.NPC;
+import cn.mythicland.npclib.api.NPC;
 
 import java.util.Objects;
 

@@ -24,4 +24,6 @@ includeBuild("../DreamLib") {
     }
 }
 
+includeBuild("../../../../MythicLand/plugins/MythicNPCLib")
+
 rootProject.name = "DreamNPC"

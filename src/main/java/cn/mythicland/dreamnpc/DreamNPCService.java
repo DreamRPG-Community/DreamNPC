@@ -1,24 +1,24 @@
 package cn.mythicland.dreamnpc;
 
-import cn.mythicland.dreamnpc.api.DreamNPCApi;
-import cn.mythicland.dreamnpc.api.NpcOverview;
-import cn.mythicland.dreamnpc.model.*;
-import cn.mythicland.dreamnpc.runtime.RuntimeNpc;
-import cn.mythicland.dreamnpc.storage.NpcRepository;
 import cn.mythicland.dreamlib.api.DreamLibApi;
-import cn.mythicland.dreamlib.command.VanillaCommandMessages;
 import cn.mythicland.dreamlib.bootstrap.PluginTaskScope;
 import cn.mythicland.dreamlib.bootstrap.annotation.ServiceComponent;
+import cn.mythicland.dreamlib.command.VanillaCommandMessages;
 import cn.mythicland.dreamlib.config.ConfigSupport;
 import cn.mythicland.dreamlib.location.LocationSnapper;
 import cn.mythicland.dreamlib.text.FloatingTextHandle;
 import cn.mythicland.dreamlib.text.FloatingTextService;
 import cn.mythicland.dreamlib.text.FloatingTextSpec;
-import cn.mythicland.thirdparty.npclib.NPCLib;
-import cn.mythicland.thirdparty.npclib.api.NPC;
-import cn.mythicland.thirdparty.npclib.api.events.NPCInteractEvent;
+import cn.mythicland.dreamnpc.api.DreamNPCApi;
 import cn.mythicland.dreamnpc.api.DreamNPCInteractEvent;
-import cn.mythicland.thirdparty.npclib.api.skin.Skin;
+import cn.mythicland.dreamnpc.api.NpcOverview;
+import cn.mythicland.dreamnpc.model.*;
+import cn.mythicland.dreamnpc.runtime.RuntimeNpc;
+import cn.mythicland.dreamnpc.storage.NpcRepository;
+import cn.mythicland.npclib.NPCLib;
+import cn.mythicland.npclib.api.NPC;
+import cn.mythicland.npclib.api.events.NPCInteractEvent;
+import cn.mythicland.npclib.api.skin.Skin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -94,53 +94,29 @@ public final class DreamNPCService implements DreamNPCApi {
     ) {
         if (maxDistance <= 0.0D || radius <= 0.0D) return Double.POSITIVE_INFINITY;
 
-        double minX = npcLocation.getX() - radius;
-        double maxX = npcLocation.getX() + radius;
-        double minY = npcLocation.getY() - radius;
-        double maxY = npcLocation.getY() + NPC_SELECTION_HEIGHT + radius;
-        double minZ = npcLocation.getZ() - radius;
-        double maxZ = npcLocation.getZ() + radius;
-        double near = 0.0D;
-        double far = maxDistance;
-
-        double originX = eye.getX();
-        double originY = eye.getY();
-        double originZ = eye.getZ();
-        double directionX = direction.getX();
-        double directionY = direction.getY();
-        double directionZ = direction.getZ();
-
-        if (Math.abs(directionX) <= RAY_EPSILON) {
-            if (originX < minX || originX > maxX) return Double.POSITIVE_INFINITY;
-        } else {
-            double first = (minX - originX) / directionX;
-            double second = (maxX - originX) / directionX;
-            near = Math.clamp(Math.min(first, second), near, Double.POSITIVE_INFINITY);
-            far = Math.clamp(Math.max(first, second), Double.NEGATIVE_INFINITY, far);
-            if (near > far) return Double.POSITIVE_INFINITY;
+        double[] interval = {0.0D, maxDistance};
+        if (!clipAxis(interval, eye.getX(), direction.getX(), npcLocation.getX() - radius, npcLocation.getX() + radius)
+                || !clipAxis(interval, eye.getY(), direction.getY(), npcLocation.getY() - radius,
+                npcLocation.getY() + NPC_SELECTION_HEIGHT + radius)
+                || !clipAxis(interval, eye.getZ(), direction.getZ(), npcLocation.getZ() - radius, npcLocation.getZ() + radius)) {
+            return Double.POSITIVE_INFINITY;
         }
+        return interval[0] <= maxDistance ? interval[0] : Double.POSITIVE_INFINITY;
+    }
 
-        if (Math.abs(directionY) <= RAY_EPSILON) {
-            if (originY < minY || originY > maxY) return Double.POSITIVE_INFINITY;
-        } else {
-            double first = (minY - originY) / directionY;
-            double second = (maxY - originY) / directionY;
-            near = Math.clamp(Math.min(first, second), near, Double.POSITIVE_INFINITY);
-            far = Math.clamp(Math.max(first, second), Double.NEGATIVE_INFINITY, far);
-            if (near > far) return Double.POSITIVE_INFINITY;
-        }
-
-        if (Math.abs(directionZ) <= RAY_EPSILON) {
-            if (originZ < minZ || originZ > maxZ) return Double.POSITIVE_INFINITY;
-        } else {
-            double first = (minZ - originZ) / directionZ;
-            double second = (maxZ - originZ) / directionZ;
-            near = Math.clamp(Math.min(first, second), near, Double.POSITIVE_INFINITY);
-            far = Math.clamp(Math.max(first, second), Double.NEGATIVE_INFINITY, far);
-            if (near > far) return Double.POSITIVE_INFINITY;
-        }
-
-        return near <= maxDistance ? near : Double.POSITIVE_INFINITY;
+    private static boolean clipAxis(
+            double[] interval,
+            double origin,
+            double direction,
+            double min,
+            double max
+    ) {
+        if (Math.abs(direction) <= RAY_EPSILON) return !(origin < min || origin > max);
+        double first = (min - origin) / direction;
+        double second = (max - origin) / direction;
+        interval[0] = Math.clamp(Math.min(first, second), interval[0], Double.POSITIVE_INFINITY);
+        interval[1] = Math.clamp(Math.max(first, second), Double.NEGATIVE_INFINITY, interval[1]);
+        return !(interval[0] > interval[1]);
     }
 
     static Location snapFacingPlayer(Location location, Location playerLocation) {
@@ -351,15 +327,14 @@ public final class DreamNPCService implements DreamNPCApi {
             return;
         }
 
-        NPC npc = Objects.requireNonNull(npcLib.createNPC(), "NPCLib returned no NPC");
-        try {
-            npc.setLocation(location.clone());
-            npc.disableFOV();
+        NPC npc = npcLib.createPacketNpc(location, options -> {
             if (record.skin() != null && record.skin().value() != null) {
                 SkinData skin = record.skin();
-                npc.setSkin(new Skin(skin.value(), skin.signature()));
+                options.skin(new Skin(skin.value(), skin.signature()));
             }
-            npc.create();
+        });
+        try {
+            npc.disableFOV();
             List<Double> lineSpacings = lineSpacings(record);
             Location textLocation = nameDisplayAnchor(
                     location,
@@ -952,9 +927,9 @@ public final class DreamNPCService implements DreamNPCApi {
         if (npcLib != null) return;
         npcLib = new NPCLib(
                 plugin,
-                new cn.mythicland.thirdparty.npclib.NPCLibOptions()
+                new cn.mythicland.npclib.NPCLibOptions()
                         .setMovementHandling(
-                                cn.mythicland.thirdparty.npclib.NPCLibOptions.MovementHandling
+                                cn.mythicland.npclib.NPCLibOptions.MovementHandling
                                         .repeatingTask(VISIBILITY_RECONCILE_INTERVAL_TICKS)
                         )
         );

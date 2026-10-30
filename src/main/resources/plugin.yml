@@ -5,6 +5,7 @@ author: ShanguanLinG
 load: POSTWORLD
 depend:
 - DreamLib
+- ProtocolLib
 description: Annotation-driven packet NPCs with command-bound interactions.
 commands:
   dreamnpc:
