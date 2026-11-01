@@ -40,9 +40,10 @@ tasks.withType(Jar).configureEach {
 }
 
 tasks.named("jar") {
+    dependsOn configurations.npcEmbedded
     from("THIRD-PARTY-NOTICES.md")
     from({ configurations.npcEmbedded.collect { zipTree(it) } }) {
-        include "cn/mythicland/npclib/**", "cn/mythicland/framework/bukkit/reflect/**"
+        include "cn/mythicland/npclib/**"
     }
 }
 
@@ -56,14 +57,14 @@ configurations {
 
 dependencies {
     npcEmbedded("cn.mythicland:mythic-npclib:1.0.0")
-    npcEmbedded("cn.mythicland:mythic-framework-bukkit:1.0.0")
     compileOnly("com.destroystokyo.paper:paper-api:${paperApiVersion}")
     compileOnly("self-written:DreamLib:${project.version}")
     compileOnly(files("../../../cache/patched_1.12.2.jar"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testImplementation("org.mockito:mockito-core:5.12.0")
     testImplementation("com.destroystokyo.paper:paper-api:${paperApiVersion}")
-    testRuntimeOnly("self-written:DreamLib:${project.version}")
+    testImplementation("self-written:DreamLib:${project.version}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.2")
 }

@@ -1,8 +1,12 @@
 package cn.mythicland.dreamnpc;
 
-import cn.mythicland.dreamlib.bootstrap.PluginTaskScope;
-import cn.mythicland.dreamlib.bootstrap.annotation.ListenerComponent;
+import cn.mythicland.framework.bukkit.component.ListenerComponent;
+import cn.mythicland.framework.bukkit.task.PluginTaskScope;
+import cn.mythicland.framework.component.InjectComponent;
 import cn.mythicland.npclib.api.events.NPCInteractEvent;
+
+import java.util.Objects;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,11 +15,10 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.util.Objects;
-
 /**
  * Bridges Bukkit and NPCLib interactions into the DreamNPC service.
  */
+@InjectComponent
 @ListenerComponent
 public final class DreamNPCListener implements Listener {
 

@@ -1,7 +1,7 @@
 package cn.mythicland.dreamnpc.storage;
 
 import cn.mythicland.dreamnpc.model.*;
-import cn.mythicland.dreamlib.storage.AtomicYamlStore;
+import cn.mythicland.framework.bukkit.storage.AtomicYamlStore;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -26,14 +26,19 @@ public final class NpcRepository {
 
     private static Map<UUID, NpcRecord> decode(YamlConfiguration configuration) {
         ConfigurationSection section = configuration.getConfigurationSection("npcs");
-        if (section == null) return Map.of();
+        if (section == null) throw new IllegalArgumentException("Missing npcs section");
 
         Map<UUID, NpcRecord> records = new LinkedHashMap<>();
         for (String key : section.getKeys(false)) {
             try {
                 UUID id = UUID.fromString(key);
                 ConfigurationSection npc = section.getConfigurationSection(key);
-                if (npc == null) continue;
+                if (npc == null) throw new IllegalArgumentException("NPC record must be a mapping");
+                for (String coordinate : List.of("x", "y", "z", "yaw", "pitch")) {
+                    if ((coordinate.equals("yaw") || coordinate.equals("pitch")) && !npc.contains(coordinate)) continue;
+                    if (!(npc.get(coordinate) instanceof Number value) || !Double.isFinite(value.doubleValue()))
+                        throw new IllegalArgumentException("Invalid NPC coordinate: " + coordinate);
+                }
                 NpcLocation location = new NpcLocation(
                         requiredWorldName(npc),
                         npc.getDouble("x"),
@@ -60,10 +65,20 @@ public final class NpcRepository {
                         )
                 );
             } catch (RuntimeException exception) {
-                // One malformed record must not prevent all other NPCs from loading.
+                throw new IllegalArgumentException("Invalid NPC definition: " + key, exception);
             }
         }
         return Collections.unmodifiableMap(records);
+    }
+
+    /**
+     * Validates every NPC record without skipping malformed entries or accessing world state.
+     *
+     * @param configuration parsed editable NPC document
+     */
+    public static void validateContent(YamlConfiguration configuration) {
+        if (!configuration.isConfigurationSection("npcs")) throw new IllegalArgumentException("Missing npcs section");
+        decode(configuration);
     }
 
     private static String requiredWorldName(ConfigurationSection section) {
@@ -77,6 +92,9 @@ public final class NpcRepository {
         String player = section.getString("player");
         if (player == null || player.isBlank())
             throw new IllegalArgumentException("NPC skin.player requires a premium player name");
+        if (section.getBoolean("fixed", false)) {
+            return new SkinData(player, section.getString("value"), section.getString("signature"), true);
+        }
         return new SkinData(player, null, null);
     }
 
@@ -115,7 +133,10 @@ public final class NpcRepository {
             }
             if (record.skin() != null) {
                 SkinData skin = record.skin();
-                values.put("skin", Map.of("player", skin.playerName()));
+                values.put("skin", skin.fixed()
+                        ? Map.of("player", skin.playerName(), "fixed", true, "value", skin.value(), "signature",
+                        skin.signature())
+                        : Map.of("player", skin.playerName()));
             }
             List<Map<String, String>> commands = new ArrayList<>();
             for (BoundCommand command : record.commands()) {
@@ -137,7 +158,7 @@ public final class NpcRepository {
      */
     public CompletableFuture<Map<UUID, NpcRecord>> load() {
         return CompletableFuture.supplyAsync(() -> {
-            if (!Files.exists(target)) return Map.of();
+            if (!Files.exists(target)) throw new IllegalStateException("NPC content file is missing: " + target);
             try {
                 String content = Files.readString(target);
                 YamlConfiguration configuration = new YamlConfiguration();

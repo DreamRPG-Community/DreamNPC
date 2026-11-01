@@ -14,5 +14,13 @@ public final class DreamNPCPlugin extends DreamLibManagedPlugin {
         super(COMPONENT_PACKAGE);
     }
 
+    /**
+     * Reloads NPC definitions without reading shared display settings.
+     *
+     * @return completion after NPC changes have been applied on the main thread
+     */
+    public java.util.concurrent.CompletableFuture<Void> reloadContent() {
+        return bootstrap(COMPONENT_PACKAGE).resolve(DreamNPCService.class).reloadNpcData();
+    }
 
 }

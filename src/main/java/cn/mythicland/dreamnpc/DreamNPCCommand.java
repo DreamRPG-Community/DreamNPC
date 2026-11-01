@@ -1,11 +1,11 @@
 package cn.mythicland.dreamnpc;
 
-import cn.mythicland.dreamnpc.model.CommandExecutionMode;
 import cn.mythicland.dreamlib.api.DreamLibApi;
-import cn.mythicland.dreamlib.bootstrap.annotation.CommandCompleter;
-import cn.mythicland.dreamlib.bootstrap.annotation.CommandComponent;
-import cn.mythicland.dreamlib.bootstrap.annotation.CommandHandler;
-import cn.mythicland.dreamlib.command.CommandContext;
+import cn.mythicland.dreamnpc.model.CommandExecutionMode;
+import cn.mythicland.framework.bukkit.command.CommandBinding;
+import cn.mythicland.framework.bukkit.command.CommandCompleter;
+import cn.mythicland.framework.bukkit.command.CommandContext;
+import cn.mythicland.framework.bukkit.command.CommandRoute;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -16,7 +16,10 @@ import java.util.Objects;
 /**
  * The only DreamNPC command entry point.
  */
-@CommandComponent(value = "dreamnpc", permission = "dreamnpc.admin")
+@CommandBinding(
+        value = "dreamnpc",
+        permission = "dreamnpc.admin"
+)
 public final class DreamNPCCommand {
 
     private final DreamNPCService service;
@@ -31,9 +34,10 @@ public final class DreamNPCCommand {
         throw context.invalidUsage();
     }
 
-    @CommandHandler(
-            value = "sel",
-            usage = "/dreamnpc sel",
+    @CommandRoute(
+            path = {"dreamnpc", "sel"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc sel",
             order = 90
     )
     private void select(CommandContext context) {
@@ -41,9 +45,10 @@ public final class DreamNPCCommand {
         service.selectByView(player(context));
     }
 
-    @CommandHandler(
-            value = "create",
-            usage = "/dreamnpc create <名字...>",
+    @CommandRoute(
+            path = {"dreamnpc", "create"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc create <名字...>",
             order = 40
     )
     private void create(CommandContext context) {
@@ -51,9 +56,10 @@ public final class DreamNPCCommand {
         service.create(player(context), context.arguments());
     }
 
-    @CommandHandler(
-            value = "rename",
-            usage = "/dreamnpc rename <行号> <内容...>",
+    @CommandRoute(
+            path = {"dreamnpc", "rename"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc rename <行号> <内容...>",
             order = 80
     )
     private void rename(CommandContext context) {
@@ -68,9 +74,10 @@ public final class DreamNPCCommand {
                 String.join(" ", context.arguments().subList(1, context.arguments().size())));
     }
 
-    @CommandHandler(
-            value = "skin",
-            usage = "/dreamnpc skin <正版玩家ID>",
+    @CommandRoute(
+            path = {"dreamnpc", "skin"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc skin <正版玩家ID>",
             order = 100
     )
     private void skin(CommandContext context) {
@@ -78,9 +85,10 @@ public final class DreamNPCCommand {
         service.skin(player(context), context.argument(0));
     }
 
-    @CommandHandler(
-            value = "tph",
-            usage = "/dreamnpc tph",
+    @CommandRoute(
+            path = {"dreamnpc", "tph"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc tph",
             order = 110
     )
     private void teleport(CommandContext context) {
@@ -88,9 +96,10 @@ public final class DreamNPCCommand {
         service.teleportSelected(player(context));
     }
 
-    @CommandHandler(
-            value = "cmd add",
-            usage = "/dreamnpc cmd add <执行方式> <命令...>",
+    @CommandRoute(
+            path = {"dreamnpc", "cmd", "add"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc cmd add <执行方式> <命令...>",
             order = 10
     )
     private void addCommand(CommandContext context) {
@@ -108,9 +117,10 @@ public final class DreamNPCCommand {
         );
     }
 
-    @CommandHandler(
-            value = "cmd remove",
-            usage = "/dreamnpc cmd remove <序号>",
+    @CommandRoute(
+            path = {"dreamnpc", "cmd", "remove"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc cmd remove <序号>",
             order = 30
     )
     private void removeCommand(CommandContext context) {
@@ -124,9 +134,10 @@ public final class DreamNPCCommand {
         service.removeCommand(player(context), index);
     }
 
-    @CommandHandler(
-            value = "cmd list",
-            usage = "/dreamnpc cmd list",
+    @CommandRoute(
+            path = {"dreamnpc", "cmd", "list"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc cmd list",
             order = 20
     )
     private void listCommands(CommandContext context) {
@@ -135,9 +146,10 @@ public final class DreamNPCCommand {
         service.listCommands(context.sender(), player);
     }
 
-    @CommandHandler(
-            value = "list",
-            usage = "/dreamnpc list",
+    @CommandRoute(
+            path = {"dreamnpc", "list"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc list",
             order = 60
     )
     private void list(CommandContext context) {
@@ -145,9 +157,10 @@ public final class DreamNPCCommand {
         service.list(context.sender());
     }
 
-    @CommandHandler(
-            value = "delete",
-            usage = "/dreamnpc delete",
+    @CommandRoute(
+            path = {"dreamnpc", "delete"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc delete",
             order = 50
     )
     private void delete(CommandContext context) {
@@ -155,9 +168,10 @@ public final class DreamNPCCommand {
         service.delete(player(context));
     }
 
-    @CommandHandler(
-            value = "reload",
-            usage = "/dreamnpc reload",
+    @CommandRoute(
+            path = {"dreamnpc", "reload"},
+            maxArguments = Integer.MAX_VALUE,
+            usages = "/dreamnpc reload",
             order = 70
     )
     private void reload(CommandContext context) {

@@ -1,7 +1,7 @@
 package cn.mythicland.dreamnpc;
 
-import cn.mythicland.dreamlib.bootstrap.DreamLibPluginLifecycle;
-import cn.mythicland.dreamlib.bootstrap.annotation.LifecycleComponent;
+import cn.mythicland.framework.component.LifecycleComponent;
+import cn.mythicland.framework.component.ManagedLifecycle;
 
 import java.util.Objects;
 
@@ -9,7 +9,7 @@ import java.util.Objects;
  * Owns DreamNPC startup, reload, and shutdown ordering.
  */
 @LifecycleComponent
-public final class DreamNPCLifecycle implements DreamLibPluginLifecycle {
+public final class DreamNPCLifecycle implements ManagedLifecycle {
 
     private final DreamNPCService service;
 
@@ -18,7 +18,7 @@ public final class DreamNPCLifecycle implements DreamLibPluginLifecycle {
     }
 
     @Override
-    public void enable() {
+    public void load() {
         service.enable();
     }
 
@@ -28,7 +28,7 @@ public final class DreamNPCLifecycle implements DreamLibPluginLifecycle {
     }
 
     @Override
-    public void disable() {
+    public void unload() {
         service.disable();
     }
 }

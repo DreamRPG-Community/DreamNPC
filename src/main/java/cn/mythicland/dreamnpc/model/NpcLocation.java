@@ -1,6 +1,6 @@
 package cn.mythicland.dreamnpc.model;
 
-import cn.mythicland.dreamlib.location.LocationSnapper;
+import cn.mythicland.framework.bukkit.location.LocationSnapper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,7 +33,6 @@ public record NpcLocation(
         y = LocationSnapper.snapStandingHeight(y);
         z = LocationSnapper.snapHorizontalCoordinate(z);
         yaw = LocationSnapper.snapYaw(yaw);
-        pitch = 0.0F;
     }
 
     /**

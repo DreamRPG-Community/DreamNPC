@@ -7,6 +7,8 @@ pluginManagement {
     }
 }
 
+apply from: file("../../../../MythicLand/plugins/MythicFramework/gradle/workspace-build-lock.gradle")
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
@@ -24,6 +26,10 @@ includeBuild("../DreamLib") {
     }
 }
 
-includeBuild("../../../../MythicLand/plugins/MythicNPCLib")
+includeBuild("../../../../MythicLand/plugins/MythicNPCLib") {
+    dependencySubstitution {
+        substitute module("cn.mythicland:mythic-npclib") using project(":")
+    }
+}
 
 rootProject.name = "DreamNPC"

@@ -18,6 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class NpcRepositoryTest {
 
@@ -48,6 +49,31 @@ class NpcRepositoryTest {
         yaml.set("npcs." + id + ".skin.signature", "old signature");
         yaml.save(file.toFile());
         assertNull(repository.load().join().get(id).skin().value());
+    }
+
+    @Test
+    void fixedSignedSkinSurvivesSaveAndLoad() {
+        UUID id = UUID.randomUUID();
+        NpcRepository repository = new NpcRepository(temporaryDirectory.resolve("fixed-skin.yml"));
+        SkinData skin = new SkinData("Notch", "texture", "signature", true);
+
+        repository.save(Map.of(id, npc(id).withSkin(skin))).join();
+
+        assertEquals(skin, repository.load().join().get(id).skin());
+    }
+
+    @Test
+    void snapsConfiguredYawAndPreservesPitch() {
+        UUID id = UUID.randomUUID();
+        NpcRepository repository = new NpcRepository(temporaryDirectory.resolve("orientation.yml"));
+        NpcRecord record = new NpcRecord(id, new NpcLocation("world", 0.5D, 64D, 0.5D, 133.1503F, -14.4764F),
+                List.of("NPC"), null, List.of());
+
+        repository.save(Map.of(id, record)).join();
+
+        NpcLocation location = repository.load().join().get(id).location();
+        assertEquals(135.0F, location.yaw());
+        assertEquals(-14.4764F, location.pitch());
     }
 
     @TempDir
@@ -99,7 +125,7 @@ class NpcRepositoryTest {
     }
 
     @Test
-    void legacyRuntimeSpacingOrderIsIgnoredOnLoad() throws Exception {
+    void malformedSpacingFailsInsteadOfSilentlyRemovingTheNpc() throws Exception {
         UUID id = UUID.randomUUID();
         Path file = temporaryDirectory.resolve("npcs.yml");
         Files.writeString(
@@ -120,9 +146,7 @@ class NpcRepositoryTest {
                         """.formatted(id)
         );
 
-        NpcRecord loaded = new NpcRepository(file).load().join().get(id);
-
-        assertNull(loaded);
+        assertThrows(java.util.concurrent.CompletionException.class, () -> new NpcRepository(file).load().join());
     }
 
     private static NpcRecord npc(UUID id) {

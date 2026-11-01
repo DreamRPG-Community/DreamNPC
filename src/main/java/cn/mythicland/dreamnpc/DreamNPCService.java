@@ -1,24 +1,32 @@
 package cn.mythicland.dreamnpc;
 
 import cn.mythicland.dreamlib.api.DreamLibApi;
-import cn.mythicland.dreamlib.bootstrap.PluginTaskScope;
-import cn.mythicland.dreamlib.bootstrap.annotation.ServiceComponent;
-import cn.mythicland.dreamlib.command.VanillaCommandMessages;
-import cn.mythicland.dreamlib.config.ConfigSupport;
-import cn.mythicland.dreamlib.location.LocationSnapper;
-import cn.mythicland.dreamlib.text.FloatingTextHandle;
-import cn.mythicland.dreamlib.text.FloatingTextService;
-import cn.mythicland.dreamlib.text.FloatingTextSpec;
 import cn.mythicland.dreamnpc.api.DreamNPCApi;
 import cn.mythicland.dreamnpc.api.DreamNPCInteractEvent;
+import cn.mythicland.dreamnpc.api.DreamNPCRemovedEvent;
 import cn.mythicland.dreamnpc.api.NpcOverview;
 import cn.mythicland.dreamnpc.model.*;
 import cn.mythicland.dreamnpc.runtime.RuntimeNpc;
 import cn.mythicland.dreamnpc.storage.NpcRepository;
+import cn.mythicland.framework.bukkit.command.VanillaCommandMessages;
+import cn.mythicland.framework.bukkit.component.ServiceComponent;
+import cn.mythicland.framework.bukkit.config.ConfigSupport;
+import cn.mythicland.framework.bukkit.hologram.FloatingTextHandle;
+import cn.mythicland.framework.bukkit.hologram.FloatingTextService;
+import cn.mythicland.framework.bukkit.hologram.FloatingTextSpec;
+import cn.mythicland.framework.bukkit.location.LocationSnapper;
+import cn.mythicland.framework.bukkit.task.PluginTaskScope;
 import cn.mythicland.npclib.NPCLib;
 import cn.mythicland.npclib.api.NPC;
 import cn.mythicland.npclib.api.events.NPCInteractEvent;
 import cn.mythicland.npclib.api.skin.Skin;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,10 +35,6 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
 /**
  * Main-thread DreamNPC aggregate and runtime coordinator.
@@ -60,6 +64,12 @@ public final class DreamNPCService implements DreamNPCApi {
     private boolean enabled;
     private boolean loading;
 
+    private static Path npcFile(DreamNPCPlugin plugin) {
+        Path file = plugin.getDataFolder().toPath().resolve("npcs.yml");
+        if (!Files.exists(file)) plugin.saveResource("npcs.yml", false);
+        return file;
+    }
+
     public DreamNPCService(
             DreamNPCPlugin plugin,
             DreamLibApi lib,
@@ -72,7 +82,7 @@ public final class DreamNPCService implements DreamNPCApi {
         this.floatingText = Objects.requireNonNull(floatingText, "floatingText");
         this.tasks = Objects.requireNonNull(tasks, "tasks");
         this.settings = Objects.requireNonNull(settings, "settings");
-        this.repository = new NpcRepository(plugin.getDataFolder().toPath().resolve("npcs.yml"));
+        this.repository = new NpcRepository(npcFile(plugin));
     }
 
     /**
@@ -98,7 +108,8 @@ public final class DreamNPCService implements DreamNPCApi {
         if (!clipAxis(interval, eye.getX(), direction.getX(), npcLocation.getX() - radius, npcLocation.getX() + radius)
                 || !clipAxis(interval, eye.getY(), direction.getY(), npcLocation.getY() - radius,
                 npcLocation.getY() + NPC_SELECTION_HEIGHT + radius)
-                || !clipAxis(interval, eye.getZ(), direction.getZ(), npcLocation.getZ() - radius, npcLocation.getZ() + radius)) {
+                || !clipAxis(interval, eye.getZ(), direction.getZ(), npcLocation.getZ() - radius,
+                npcLocation.getZ() + radius)) {
             return Double.POSITIVE_INFINITY;
         }
         return interval[0] <= maxDistance ? interval[0] : Double.POSITIVE_INFINITY;
@@ -184,13 +195,6 @@ public final class DreamNPCService implements DreamNPCApi {
         );
     }
 
-    private static float normalizeYaw(float yaw) {
-        float normalized = yaw % 360.0F;
-        if (normalized <= -180.0F) normalized += 360.0F;
-        else if (normalized > 180.0F) normalized -= 360.0F;
-        return normalized;
-    }
-
     private static byte toPacketAngle(float angle) {
         return (byte) ((int) (angle * 256.0F / 360.0F));
     }
@@ -250,7 +254,7 @@ public final class DreamNPCService implements DreamNPCApi {
      *
      * @return future completed after the file snapshot has been applied
      */
-    CompletableFuture<Void> reloadNpcData() {
+    public CompletableFuture<Void> reloadNpcData() {
         ensureEnabled();
         return repository.load()
                 .handle(RepositoryLoadResult::new)
@@ -381,7 +385,10 @@ public final class DreamNPCService implements DreamNPCApi {
         selections.values().removeIf(id -> !records.containsKey(id));
 
         for (UUID id : previous.keySet()) {
-            if (!records.containsKey(id)) destroyRuntime(id);
+            if (!records.containsKey(id)) {
+                destroyRuntime(id);
+                Bukkit.getPluginManager().callEvent(new DreamNPCRemovedEvent(id));
+            }
         }
         for (NpcRecord record : records.values()) {
             RuntimeNpc current = runtime.get(record.id());
@@ -678,7 +685,7 @@ public final class DreamNPCService implements DreamNPCApi {
 
     private void resolveConfiguredSkins() {
         for (NpcRecord requested : List.copyOf(records.values())) {
-            if (requested.skin() == null) continue;
+            if (requested.skin() == null || requested.skin().fixed()) continue;
             String name = requested.skin().playerName();
             skinFetcher.fetch(name).whenComplete((skin, error) -> lib.runOnMain(() -> {
                 NpcRecord current = records.get(requested.id());
@@ -757,6 +764,7 @@ public final class DreamNPCService implements DreamNPCApi {
         records.remove(id);
         selections.remove(player.getUniqueId());
         persist();
+        Bukkit.getPluginManager().callEvent(new DreamNPCRemovedEvent(id));
         player.sendMessage(ChatColor.GREEN + "DreamNPC 已删除。");
     }
 
@@ -860,7 +868,7 @@ public final class DreamNPCService implements DreamNPCApi {
                 rawFacing.getYaw(), snappedHeadView.getYaw(),
                 placementYaw, bodyTarget.getPitch(), toPacketAngle(placementYaw),
                 lookYaw, look.getPitch(), toPacketAngle(placementYaw), toPacketAngle(lookYaw),
-                normalizeYaw(placementYaw - lookYaw)
+                LocationSnapper.normalizeYaw(placementYaw - lookYaw)
         ));
     }
 

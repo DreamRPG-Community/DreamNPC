@@ -1,9 +1,9 @@
 package cn.mythicland.dreamnpc;
 
-import cn.mythicland.dreamlib.bootstrap.annotation.ConfigComponent;
-import cn.mythicland.dreamlib.config.ConfigValue;
-import cn.mythicland.dreamlib.config.ConfigView;
-import cn.mythicland.dreamlib.config.ConfigurableComponent;
+import cn.mythicland.framework.bukkit.config.ConfigView;
+import cn.mythicland.framework.bukkit.config.ConfigurableComponent;
+import cn.mythicland.framework.bukkit.config.annotation.ConfigComponent;
+import cn.mythicland.framework.bukkit.config.annotation.ConfigProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public final class DreamNPCSettings implements ConfigurableComponent {
         List<Double> gaps = adjacentGaps(configured);
         List<Double> resolved = new ArrayList<>(lineCount);
         resolved.add(0.0D);
-        double fallback = gaps.isEmpty() ? 0.0D : gaps.get(gaps.size() - 1);
+        double fallback = gaps.isEmpty() ? 0.0D : gaps.getLast();
         for (int index = 1; index < lineCount; index++) {
             resolved.add(index - 1 < gaps.size() ? gaps.get(index - 1) : fallback);
         }
@@ -145,42 +145,42 @@ public final class DreamNPCSettings implements ConfigurableComponent {
     }
 
     private record Snapshot(
-            @ConfigValue(
+            @ConfigProperty(
                     path = "name.line-spacing",
                     defaultValue = "0.3,0.0",
                     nonNegative = true
             )
             List<Double> lineSpacings,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "name.offset",
                     defaultValue = "2.3"
             )
             double nameOffset,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "name.view-distance",
                     defaultValue = "32.0",
                     positive = true
             )
             double viewDistance,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "selection.range",
                     defaultValue = "6.0",
                     positive = true
             )
             double selectionRange,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "selection.radius",
                     defaultValue = "0.75",
                     positive = true
             )
             double selectionRadius,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "selection.stick-material",
                     defaultValue = "STICK",
                     nonBlank = true
             )
             String stickMaterial,
-            @ConfigValue(
+            @ConfigProperty(
                     path = "debug.orientation",
                     defaultValue = "false"
             )

@@ -3,13 +3,23 @@ package cn.mythicland.dreamnpc.model;
 import java.util.Objects;
 
 /**
- * A configured premium name with optional resolved, signed Mojang textures.
+ * A configured premium name with optional resolved or fixed signed textures.
  *
  * @param playerName original requested player name
  * @param value      base64 texture value, or null until resolved
  * @param signature  Mojang texture signature, or null until resolved
+ * @param fixed      whether the supplied signed texture is persisted and used without fetching
  */
-public record SkinData(String playerName, String value, String signature) {
+public record SkinData(
+        String playerName,
+        String value,
+        String signature,
+        boolean fixed
+) {
+
+    public SkinData(String playerName, String value, String signature) {
+        this(playerName, value, signature, false);
+    }
 
     public SkinData {
         playerName = requireText(playerName, "playerName");
@@ -17,6 +27,7 @@ public record SkinData(String playerName, String value, String signature) {
             throw new IllegalArgumentException("Invalid premium player name: " + playerName);
         if ((value == null) != (signature == null))
             throw new IllegalArgumentException("Skin texture and signature must be supplied together");
+        if (fixed && value == null) throw new IllegalArgumentException("Fixed skin requires signed textures");
         if (value != null) {
             value = requireText(value, "value");
             signature = requireText(signature, "signature");
